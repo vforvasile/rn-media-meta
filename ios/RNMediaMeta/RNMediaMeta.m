@@ -147,8 +147,6 @@ RCT_EXPORT_METHOD(get:(NSString *)path
 
         [result setObject:data
                   forKey:@"thumb"];
-        [result setObject:data
-                  forKey:@"thumbTest"];
       }
       CGImageRelease(imageRef);
     }
