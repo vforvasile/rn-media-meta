@@ -65,11 +65,11 @@ RCT_EXPORT_METHOD(get:(NSString *)path
 
     if (options[@"getThumb"]) {
       UIImage *thumbnail;
-      CGImageRef imageRef;
+      CGImageRef imageRef = NULL;
       NSArray *artworks = [AVMetadataItem metadataItemsFromArray:asset.commonMetadata
                                                         withKey:AVMetadataCommonKeyArtwork
                                                         keySpace:AVMetadataKeySpaceCommon];
-      if (artworks) {
+      if ([artworks count]) {
         // artwork thumb
         for (AVMetadataItem *item in artworks) {
           thumbnail = [UIImage imageWithData:item.value];
