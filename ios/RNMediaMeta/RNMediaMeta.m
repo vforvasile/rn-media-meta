@@ -56,7 +56,7 @@ RCT_EXPORT_METHOD(get:(NSString *)path
     // string keys
     for (NSString *key in [self metadatas]) {
       NSArray *items = [AVMetadataItem metadataItemsFromArray:asset.commonMetadata
-                                                     withKey:key
+                                                    withKey:key
                                                     keySpace:AVMetadataKeySpaceCommon];
       for (AVMetadataItem *item in items) {
         [result setObject:item.value forKey:key];
@@ -65,36 +65,90 @@ RCT_EXPORT_METHOD(get:(NSString *)path
 
     if (options[@"getThumb"]) {
       UIImage *thumbnail;
+      CGImageRef imageRef;
       NSArray *artworks = [AVMetadataItem metadataItemsFromArray:asset.commonMetadata
                                                         withKey:AVMetadataCommonKeyArtwork
                                                         keySpace:AVMetadataKeySpaceCommon];
-      // artwork thumb
-      for (AVMetadataItem *item in artworks) {
-        thumbnail = [UIImage imageWithData:item.value];
-      }
-      if (thumbnail) {
-        [result setObject:@(thumbnail.size.width) forKey:@"width"];
-        [result setObject:@(thumbnail.size.height) forKey:@"height"];
-        NSString *data = [UIImagePNGRepresentation(thumbnail) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-        [result setObject:data
-                  forKey:@"thumb"];
-      }
+      if (artworks) {
+        // artwork thumb
+        for (AVMetadataItem *item in artworks) {
+          thumbnail = [UIImage imageWithData:item.value];
+        }
+      } else {
+        // video frame thumb
+        AVAssetImageGenerator *imageGenerator = [[AVAssetImageGenerator alloc]initWithAsset:asset];
+        imageGenerator.appliesPreferredTrackTransform = YES;
+        CMTime time = CMTimeMake(0, 600);
+        imageRef = [imageGenerator copyCGImageAtTime:time actualTime:NULL error:NULL];
+        thumbnail = [UIImage imageWithCGImage:imageRef];
 
-      // video frame thumb
-      AVAssetImageGenerator *imageGenerator = [[AVAssetImageGenerator alloc]initWithAsset:asset];
-      imageGenerator.appliesPreferredTrackTransform = YES;
-      CMTime time = CMTimeMake(0, 600);
+        if (thumbnail) {
+          // return the video dimensions
+          [result setObject:@(thumbnail.size.width) forKey:@"width"];
+          [result setObject:@(thumbnail.size.height) forKey:@"height"];
+        }
 
-      CGImageRef imageRef = [imageGenerator copyCGImageAtTime:time actualTime:NULL error:NULL];
-      thumbnail = [UIImage imageWithCGImage:imageRef];
-      if (thumbnail) {
-        [result setObject:@(thumbnail.size.width) forKey:@"width"];
-        [result setObject:@(thumbnail.size.height) forKey:@"height"];
+        // return the video duration
         [result setObject:@((CMTimeGetSeconds(asset.duration) * 1000)) forKey:@"duration"];
-        
-        NSString *data = [UIImagePNGRepresentation(thumbnail) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
+      }
+
+      // resize thumbnail data and return
+      if (thumbnail) {
+        // resize image
+        float actualHeight = thumbnail.size.height;
+        float actualWidth = thumbnail.size.width;
+        NSNumber *maxHeightNumber = [options valueForKey:@"thumbMaxHeight"];
+        float maxHeight = [maxHeightNumber floatValue];
+        NSNumber *maxWidthNumber = [options valueForKey:@"thumbMaxWidth"];
+        float maxWidth = [maxWidthNumber floatValue];
+        float imgRatio = actualWidth/actualHeight;
+        float maxRatio = maxWidth/maxHeight;
+        NSNumber *thumbCompressionNumber = [options valueForKey:@"thumbCompression"];
+        float compressionQuality = [thumbCompressionNumber floatValue];
+
+        if (actualHeight > maxHeight || actualWidth > maxWidth)
+        {
+          if(imgRatio < maxRatio)
+          {
+              //adjust width according to maxHeight
+              imgRatio = maxHeight / actualHeight;
+              actualWidth = imgRatio * actualWidth;
+              actualHeight = maxHeight;
+          }
+          else if(imgRatio > maxRatio)
+          {
+              //adjust height according to maxWidth
+              imgRatio = maxWidth / actualWidth;
+              actualHeight = imgRatio * actualHeight;
+              actualWidth = maxWidth;
+          }
+          else
+          {
+              actualHeight = maxHeight;
+              actualWidth = maxWidth;
+          }
+        }
+
+        CGRect rect = CGRectMake(0.0, 0.0, actualWidth, actualHeight);
+        UIGraphicsBeginImageContext(rect.size);
+        [thumbnail drawInRect:rect];
+        UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
+
+        NSData *imageData;
+        if (options[@"thumbFormatAsJPG"]) {
+          imageData = UIImageJPEGRepresentation(img, compressionQuality);
+        } else {
+          imageData = UIImagePNGRepresentation(img);
+        }
+
+        UIGraphicsEndImageContext();
+
+        NSString *data = [imageData base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
+
         [result setObject:data
                   forKey:@"thumb"];
+        [result setObject:data
+                  forKey:@"thumbTest"];
       }
       CGImageRelease(imageRef);
     }
