@@ -74,6 +74,12 @@ public class RNMediaMeta extends ReactContextBaseJavaModule {
     return stream.toByteArray();
   }
 
+  private byte[] convertToBytesJpg(Bitmap bmp, int thumbCompression) {
+    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+    bmp.compress(Bitmap.CompressFormat.JPEG, thumbCompression, stream);
+    return stream.toByteArray();
+  }
+
   private void putString(WritableMap map, String key, String value) {
     if (value != null) map.putString(key, value);
   }
@@ -119,6 +125,44 @@ public class RNMediaMeta extends ReactContextBaseJavaModule {
           // Bitmap bmp2 = mmr.getFrameAtTime((long) 4E6, FFmpegMediaMetadataRetriever.OPTION_CLOSEST);
           // if (bmp2 != null) bmp = bmp2;
 
+          // maybe scale the output
+          if (options.hasKey("thumbMaxHeight") && options.hasKey("thumbMaxWidth")) {
+            int maxWidth = options.getInt("thumbMaxWidth");
+            int maxHeight = options.getInt("thumbMaxHeight");
+            int inWidth = bmp.getWidth();
+            int inHeight = bmp.getHeight();
+            int outWidth;
+            int outHeight;
+            if ( inWidth > maxWidth ) {
+              // resize to smaller based on width
+              outWidth = maxWidth;
+              outHeight = (maxWidth / inWidth) * inHeight;
+              outHeight = (int) (((double) maxWidth / (double) inWidth) * inHeight);
+              // check height
+              if (outHeight > maxHeight) {
+                outHeight = maxHeight;
+                outWidth = (int) (((double) maxHeight / (double) outHeight) * outWidth);
+              }
+            } else if (inHeight > maxHeight) {
+              outHeight = maxHeight;
+              outWidth = (int) (((double) maxHeight / (double) inHeight) * inWidth);
+            } else {
+              outWidth = inWidth;
+              outHeight = inHeight;
+            }
+            result.putInt("width", outWidth);
+            result.putInt("height", outHeight);
+
+            bmp = Bitmap.createScaledBitmap(bmp, outWidth, outHeight, true);
+
+
+            // result.putInt("width", Math.round(outWidth));
+            // result.putInt("height", Math.round(outHeight));
+          } else {
+            result.putInt("width", bmp.getWidth());
+            result.putInt("height", bmp.getHeight());
+          }
+
           /*
           * The image returned seems to be always in landscape mode and does not follow
           * the rotation of the video.
@@ -132,17 +176,27 @@ public class RNMediaMeta extends ReactContextBaseJavaModule {
             }
           }
 
-          byte[] bytes = convertToBytes(bmp);
-          result.putInt("width", bmp.getWidth());
-          result.putInt("height", bmp.getHeight());
+          // maybe compress the output
+          byte[] bytes;
+          if (options.hasKey("thumbFormatAsJPG") && options.getBoolean("thumbFormatAsJPG")) {
+            int thumbCompression = 80;
+            if (options.hasKey("thumbCompression")) {
+              thumbCompression = (int)((float)options.getDouble("thumbCompression") * 100);
+            }
+            bytes = convertToBytesJpg(bmp, thumbCompression);
+          } else {
+            bytes = convertToBytes(bmp);
+          }
+
           result.putString("thumb", convertToBase64(bytes));
         }
       }
+      promise.resolve(result);
 
     } catch(Exception e) {
       e.printStackTrace();
+      promise.reject("-15", e.getMessage());
     } finally {
-      promise.resolve(result);
       mmr.release();
     }
   }
