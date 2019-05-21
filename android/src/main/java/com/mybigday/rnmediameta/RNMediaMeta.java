@@ -152,12 +152,7 @@ public class RNMediaMeta extends ReactContextBaseJavaModule {
             }
             result.putInt("width", outWidth);
             result.putInt("height", outHeight);
-
             bmp = Bitmap.createScaledBitmap(bmp, outWidth, outHeight, true);
-
-
-            // result.putInt("width", Math.round(outWidth));
-            // result.putInt("height", Math.round(outHeight));
           } else {
             result.putInt("width", bmp.getWidth());
             result.putInt("height", bmp.getHeight());
