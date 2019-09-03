@@ -10,5 +10,6 @@
   },
   "keywords": ["react", "native", "media", "metadata"],
   "author": "Jhen <developer@jhen.me>",
-  "license": "MIT"
+  "license": "MIT",
+  "homepage":"https://github.com/zi6xuan/react-native-media-meta/blob/master/README.md"
 }
