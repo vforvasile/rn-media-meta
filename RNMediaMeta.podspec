@@ -15,4 +15,5 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/zi6xuan/react-native-media-meta.git", :tag => "#{s.version}" }
   s.source_files  = "ios/**/*.{h,m}"
 
+  s.dependency 'React'
 end
