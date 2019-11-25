@@ -1,15 +1,26 @@
 {
-  "name": "react-native-media-meta",
-  "version": "0.0.10",
-  "description": "Get media file metadata in your React Native app",
+  "name": "rn-media-meta",
+  "version": "0.0.1",
+  "description": "Get media file metadata in your React Native app, fork from original react-native-media-meta",
   "main": "index.js",
   "scripts": {},
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mybigday/react-native-media-meta.git"
+    "url": "git+https://github.com/vforvasile/rn-media-meta.git"
   },
-  "keywords": ["react", "native", "media", "metadata"],
+  "keywords": [
+    "react",
+    "native",
+    "media",
+    "metadata",
+    "duration",
+    "video",
+    "photo"
+  ],
+  "bugs": {
+    "url": "https://github.com/vforvasile/rn-media-meta/issues"
+  },
   "author": "Jhen <developer@jhen.me>",
   "license": "MIT",
-  "homepage":"https://github.com/zi6xuan/react-native-media-meta/blob/master/README.md"
+  "homepage": "https://github.com/vforvasile/rn-media-meta/blob/master/README.md"
 }
