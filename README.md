@@ -1,6 +1,6 @@
 # React Native Media Meta
 
-Fork from react-native-media-meta
+Fork from react-native-media-meta o support Pods and RN 0.60+ installs
 
 > Get media file metadata in your React Native app
 
