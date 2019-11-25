@@ -8,8 +8,11 @@ Fork from react-native-media-meta
 
 ```bash
 $ npm install rn-media-meta --save
-$ react-native link rn-media-meta
+$ react-native link rn-media-meta and remove Android linking
 ```
+
+or add into your Podfile this line an skip linking
+`pod 'rn-media-meta', :path => '../node_modules/rn-media-meta'`
 
 ## Usage
 
@@ -17,9 +20,18 @@ $ react-native link rn-media-meta
 import MediaMeta from "rn-media-meta";
 const path = "<your file path here>";
 
+//first option
 MediaMeta.get(path)
   .then(metadata => console.log(metadata))
   .catch(err => console.error(err));
+
+//second option:
+try {
+  const data = await MediaMeta.get(path);
+  console.log(data);
+} catch (error) {
+  console.log(error);
+}
 ```
 
 ## API
