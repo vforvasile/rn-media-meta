@@ -116,7 +116,9 @@ public class RNMediaMeta extends ReactContextBaseJavaModule {
       }
 
       // Legacy support & camelCase
-      result.putString("createTime", result.getString("creation_time"));
+      if (result.hasKey("createTime")) {
+        result.putString("createTime", result.getString("creation_time"));
+      }
 
       if (options.getBoolean("getThumb")) {
         // get thumb
